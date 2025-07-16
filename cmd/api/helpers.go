@@ -10,7 +10,7 @@ import (
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // 1 MB
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
-	dec := json.NewDecoder(req.Body)
+	dec := json.NewDecoder(r.Body)
 
 	err := dec.Decode(data)
 	if err != nil {
@@ -55,5 +55,5 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 	payload.Error = true
 	payload.Message = err.Error()
 
-	_ := app.writeJSON(w, statusCode, payload)
+	_ = app.writeJSON(w, statusCode, payload)
 }

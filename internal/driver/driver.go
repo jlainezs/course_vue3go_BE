@@ -29,19 +29,22 @@ func ConnectPostgres(dsn string) (*DB, error) {
 	d.SetMaxIdleConns(maxIdleDbConn)
 	d.SetConnMaxLifetime(maxDbLifeTime)
 
-	err = testDB(err, d)
-
-	dbConn.SQL = d
-	return dbConn, err
-}
-
-func testDB(err error, db *sql.DB) error {
-	err = d.Ping()
+	err = testDB(d)
 	if err != nil {
-		fmt.Println("Error pinging DB:", err)
-	} else {
-		fmt.Println("Successfully pinged DB")
+		return nil, err
 	}
 
-	return err
+	dbConn.SQL = d
+	return dbConn, nil
+}
+
+func testDB(db *sql.DB) error {
+	err := db.Ping()
+	if err != nil {
+		fmt.Println("Error pinging DB:", err)
+		return err
+	}
+
+	fmt.Println("Successfully pinged DB")
+	return nil
 }
