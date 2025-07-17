@@ -150,6 +150,7 @@ func (u *User) Insert(user User) (int, error) {
 	return newId, nil
 }
 
+// ResetPassword changes the user password
 func (u *User) ResetPassword(password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -168,6 +169,7 @@ func (u *User) ResetPassword(password string) error {
 	return nil
 }
 
+// PasswordMatches checks if the given password matches the stored password
 func (u *User) PasswordMatches(plainText string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 	if err != nil {
@@ -183,6 +185,8 @@ func (u *User) PasswordMatches(plainText string) (bool, error) {
 	return true, nil
 }
 
+// Token is the data structure for any token in the database. Note that
+// we do no send the TokenHash (a slice of bytes) in any exported JSON.
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -192,4 +196,43 @@ type Token struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Expiry    time.Time `json:"expiry"`
+}
+
+func (t *Token) GetByToken(plainText string) (*Token, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, user_id, email, token, token_hash, created_at, updated_at, expiry
+				from tokens where token = $1`
+	var token Token
+	row := db.QueryRowContext(ctx, query, plainText)
+	err := row.Scan(&token.ID, token.UserID, token.Email, token.Token, token.TokenHash, token.CreatedAt, token.UpdatedAt, &token.Expiry)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
+func (t *Token) GetUserForToken(token Token) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where id = $1`
+
+	var user User
+	row := db.QueryRowContext(ctx, query, token.UserID)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
