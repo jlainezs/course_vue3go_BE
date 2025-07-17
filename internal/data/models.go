@@ -39,7 +39,7 @@ func (u *User) GetAll() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, created_at, updated_at from users order by last_name`
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users order by last_name`
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
