@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -134,7 +135,7 @@ func (u *User) Insert(user User) (int, error) {
 	var newId int
 	stmt := `insert into users (email, first_name, last_name, password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6) returning id`
 
-	err := db.QueryRowContext(ctx, stmt,
+	err = db.QueryRowContext(ctx, stmt,
 		user.Email,
 		user.FirstName,
 		user.LastName,
@@ -147,6 +148,39 @@ func (u *User) Insert(user User) (int, error) {
 	}
 
 	return newId, nil
+}
+
+func (u *User) ResetPassword(password string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	if err != nil {
+		return err
+	}
+
+	stmt := `update users set password = $1 where id = $2`
+	_, err = db.ExecContext(ctx, stmt, hashPassword, u.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) PasswordMatches(plainText string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			// invalid password
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
 type Token struct {
