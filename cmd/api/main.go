@@ -74,6 +74,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot connect to database")
 	}
+	defer func() {
+		err := db.SQL.Close()
+		if err != nil {
+			errorLog.Println("Can't close DB connection: ", err)
+		}
+	}()
 
 	app := &application{
 		config:   cfg,
