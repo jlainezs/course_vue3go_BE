@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"net/http"
+	"wwwVuewgosrc/internal/data"
 )
 
 func (app *application) routes() http.Handler {
@@ -21,6 +22,20 @@ func (app *application) routes() http.Handler {
 
 	mux.Get("/users/login", app.Login)
 	mux.Post("/users/login", app.Login)
+
+	mux.Get("/users/all", func(w http.ResponseWriter, r *http.Request) {
+		var users data.User
+		all, err := users.GetAll()
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		err = app.writeJSON(w, http.StatusOK, all)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+	})
 
 	return mux
 }
