@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -119,6 +120,33 @@ func (u *User) Delete() error {
 	}
 
 	return nil
+}
+
+func (u *User) Insert(user User) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	if err != nil {
+		return 0, err
+	}
+
+	var newId int
+	stmt := `insert into users (email, first_name, last_name, password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6) returning id`
+
+	err := db.QueryRowContext(ctx, stmt,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		hashPassword,
+		time.Now(),
+		time.Now()).Scan(&newId)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newId, nil
 }
 
 type Token struct {
