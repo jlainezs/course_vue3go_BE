@@ -203,6 +203,7 @@ type Token struct {
 	Expiry    time.Time `json:"expiry"`
 }
 
+// GetByToken returns a token using the token value
 func (t *Token) GetByToken(plainText string) (*Token, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -219,6 +220,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 	return &token, nil
 }
 
+// GetUserForToken returns the user bound to the given token
 func (t *Token) GetUserForToken(token Token) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -292,4 +294,47 @@ func (t *Token) AuthenticateToken(r *http.Request) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (t *Token) Insert(token Token, u User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// delete any exsting tokens
+	stmt := `delete from tokens where user_id = $1`
+	_, err := db.ExecContext(ctx, stmt, token.UserID)
+	if err != nil {
+		return err
+	}
+
+	token.Email = u.Email
+
+	stmt = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
+    		values ($1, $2, $3, $4, $5, $6, $7)`
+	_, err = db.ExecContext(ctx, stmt,
+		token.UserID,
+		token.Email,
+		token.Token,
+		token.TokenHash,
+		time.Now(),
+		time.Now(),
+		token.Expiry)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *Token) DeleteByToken(plainText string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from tokens where token = $1`
+	_, err := db.ExecContext(ctx, stmt, plainText)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
