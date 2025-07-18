@@ -212,7 +212,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 				from tokens where token = $1`
 	var token Token
 	row := db.QueryRowContext(ctx, query, plainText)
-	err := row.Scan(&token.ID, token.UserID, token.Email, token.Token, token.TokenHash, token.CreatedAt, token.UpdatedAt, &token.Expiry)
+	err := row.Scan(&token.ID, &token.UserID, &token.Email, &token.Token, &token.TokenHash, &token.CreatedAt, &token.UpdatedAt, &token.Expiry)
 	if err != nil {
 		return nil, err
 	}
