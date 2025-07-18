@@ -326,6 +326,7 @@ func (t *Token) Insert(token Token, u User) error {
 	return nil
 }
 
+// DeleteByToken deletes a token
 func (t *Token) DeleteByToken(plainText string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -337,4 +338,23 @@ func (t *Token) DeleteByToken(plainText string) error {
 	}
 
 	return nil
+}
+
+// ValidToken cheks for token validity
+func (t *Token) ValidToken(plainText string) (bool, error) {
+	token, err := t.GetByToken(plainText)
+	if err != nil {
+		return false, errors.New("no matching token found")
+	}
+
+	_, err = t.GetUserForToken(*token)
+	if err != nil {
+		return false, errors.New("no matching user found")
+	}
+
+	if token.Expiry.Before(time.Now()) {
+		return false, errors.New("token expired")
+	}
+
+	return true, nil
 }
