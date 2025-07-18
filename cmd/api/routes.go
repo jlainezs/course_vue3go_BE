@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"net/http"
+	"time"
 	"wwwVuewgosrc/internal/data"
 )
 
@@ -56,6 +57,26 @@ func (app *application) routes() http.Handler {
 		app.infoLog.Println("Got back id of", id)
 		newUser, _ := app.models.User.GetOne(id)
 		_ = app.writeJSON(w, http.StatusOK, newUser)
+	})
+
+	mux.Get("/test-generate-token", func(w http.ResponseWriter, r *http.Request) {
+		token, err := app.models.User.Token.GenerateToken(1, 60*time.Minute)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		token.Email = "admin@example.com"
+		token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		payload := jsonResponse{
+			Error:   false,
+			Message: "success",
+			Data:    token,
+		}
+
+		_ = app.writeJSON(w, http.StatusOK, payload)
 	})
 
 	return mux
