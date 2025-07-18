@@ -37,5 +37,26 @@ func (app *application) routes() http.Handler {
 		}
 	})
 
+	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request) {
+		var u = data.User{
+			Email:     "you@there.com",
+			FirstName: "You",
+			LastName:  "There",
+			Password:  "password",
+		}
+
+		app.infoLog.Println("Adding user...")
+
+		id, err := app.models.User.Insert(u)
+		if err != nil {
+			app.errorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+		}
+
+		app.infoLog.Println("Got back id of", id)
+		newUser, _ := app.models.User.GetOne(id)
+		_ = app.writeJSON(w, http.StatusOK, newUser)
+	})
+
 	return mux
 }

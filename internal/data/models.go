@@ -75,14 +75,14 @@ func (u *User) GetAll() ([]*User, error) {
 	return users, nil
 }
 
-func (u *User) GetOne(email string) (*User, error) {
+func (u *User) GetOne(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where email = $1`
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where id = $1`
 
 	var user User
-	row := db.QueryRowContext(ctx, query, email)
+	row := db.QueryRowContext(ctx, query, id)
 	err := row.Scan(
 		&user.ID,
 		&user.Email,
