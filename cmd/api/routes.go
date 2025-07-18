@@ -32,7 +32,13 @@ func (app *application) routes() http.Handler {
 			return
 		}
 
-		err = app.writeJSON(w, http.StatusOK, all)
+		payload := jsonResponse{
+			Error:   false,
+			Message: "success",
+			Data:    envelope{"users": all},
+		}
+
+		err = app.writeJSON(w, http.StatusOK, payload)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
