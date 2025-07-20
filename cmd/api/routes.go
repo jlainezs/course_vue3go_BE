@@ -26,7 +26,7 @@ func (app *application) routes() http.Handler {
 	}))
 
 	mux.Post("/users/login", app.Login)
-	mus.Post("/users/logout", app.Logout)
+	mux.Post("/users/logout", app.Logout)
 
 	mux.Get("/users/all", func(w http.ResponseWriter, r *http.Request) {
 		var users data.User
