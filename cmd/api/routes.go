@@ -9,6 +9,10 @@ import (
 	"wwwVuewgosrc/internal/data"
 )
 
+// routes generates our routes and attaches them to handlers, using the chi router
+// note that we return type http.Handler, and not *chi.Mux; since chi.Mux satisfies
+// the interface requirements for http.Handler, it makes sense to return the type
+// that is part of the standard library
 func (app *application) routes() http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
@@ -21,8 +25,8 @@ func (app *application) routes() http.Handler {
 		MaxAge:           300,
 	}))
 
-	mux.Get("/users/login", app.Login)
 	mux.Post("/users/login", app.Login)
+	mus.Post("/users/logout", app.Logout)
 
 	mux.Get("/users/all", func(w http.ResponseWriter, r *http.Request) {
 		var users data.User
