@@ -29,10 +29,11 @@ type config struct {
 // various parts of our application. We will share this information in most
 // cases by using this type as the receiver for functions
 type application struct {
-	config   config
-	infoLog  *log.Logger
-	errorLog *log.Logger
-	models   data.Models
+	config      config
+	infoLog     *log.Logger
+	errorLog    *log.Logger
+	models      data.Models
+	environment string
 }
 
 // dbParams reads the database connection parameters from an external env files
@@ -62,6 +63,7 @@ func main() {
 	var cfg config
 	cfg.port = 8081
 	cfg.db = dbParams()
+	environment := os.Getenv("ENV")
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -83,10 +85,11 @@ func main() {
 	}()
 
 	app := &application{
-		config:   cfg,
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		models:   data.New(db.SQL),
+		config:      cfg,
+		infoLog:     infoLog,
+		errorLog:    errorLog,
+		models:      data.New(db.SQL),
+		environment: environment,
 	}
 
 	err = app.serve()
