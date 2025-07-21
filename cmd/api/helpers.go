@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"wwwVuewgosrc/internal/data"
 )
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
@@ -85,4 +86,51 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 	payload.Message = customErr.Error()
 
 	_ = app.writeJSON(w, statusCode, payload)
+}
+
+func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
+	var user data.User
+	err := app.readJSON(w, r, &user)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if user.id == 0 {
+		// add user
+		if _, err := app.models.User.Insert(user); err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+	} else {
+		// editing user
+		u, err := app.models.User.GetOne(user.ID)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+		u.Email = user.Email
+		u.FirstName = user.FirstName
+		u.LastName = user.LastName
+
+		if err := u.Update(); err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+
+		// if password != emoty string, update password
+		if user.Password != "" {
+			err := u.ResetPassword(user.Password)
+			if err != nil {
+				app.errorJSON(w, err)
+				return
+			}
+		}
+	}
+	payload := jsonResponse{
+		error:   false,
+		Message: "Changes saved",
+	}
+
+	_ = app.writeJSON(w, http.StatusAccepted, payload)
 }
