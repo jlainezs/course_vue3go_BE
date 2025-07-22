@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 	"time"
 	"wwwVuewgosrc/internal/data"
 )
@@ -123,4 +125,20 @@ func (app *application) AllUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.errorLog.Println(err)
 	}
+}
+
+func (app *application) GetUser(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user, err := app.models.User.GetOne(userId)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, user)
 }

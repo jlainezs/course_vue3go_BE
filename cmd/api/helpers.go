@@ -96,7 +96,7 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.id == 0 {
+	if user.ID == 0 {
 		// add user
 		if _, err := app.models.User.Insert(user); err != nil {
 			app.errorJSON(w, err)
@@ -118,7 +118,7 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// if password != emoty string, update password
+		// if password != empty string, update password
 		if user.Password != "" {
 			err := u.ResetPassword(user.Password)
 			if err != nil {
@@ -128,7 +128,7 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	payload := jsonResponse{
-		error:   false,
+		Error:   false,
 		Message: "Changes saved",
 	}
 
