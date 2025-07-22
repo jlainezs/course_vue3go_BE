@@ -125,7 +125,7 @@ func (u *User) Update() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `update users set email = $1, 
+	stmt := `update users set email = $1,
                  first_name = $2,
                  last_name = $3,
                  updated_at = $4
@@ -144,6 +144,19 @@ func (u *User) Delete() error {
 
 	stmt := `delete from users where id = $1`
 	_, err := db.ExecContext(ctx, stmt, u.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) DeleteById(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from users where id = $1`
+	_, err := db.ExecContext(ctx, stmt, id)
 	if err != nil {
 		return err
 	}
