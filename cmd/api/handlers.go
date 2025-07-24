@@ -149,6 +149,8 @@ func (app *application) GetUser(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, user)
 }
 
+// DeleteUser handles the deletion of a user by their ID.
+// It reads a JSON payload from the request to extract the user ID, deletes the user, and returns a success response or an error.
 func (app *application) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	var requestPayload struct {
 		ID int `json:"id"`
@@ -172,4 +174,39 @@ func (app *application) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+// LogUserOutAndSetInactive logs out a user, sets their account status to inactive, and deletes associated tokens.
+func (app *application) LogUserOutAndSetInactive(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user, err := app.models.User.GetOne(userID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user.Active = 0
+	err = user.Update()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	// Delete tokens for user
+	err = app.models.Token.DeleteTokensForUser(userID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "User logged out and set to inactive",
+	}
+	_ = app.writeJSON(w, http.StatusAccepted, payload)
 }

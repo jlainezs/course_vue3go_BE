@@ -420,3 +420,16 @@ func (t *Token) ValidToken(plainText string) (bool, error) {
 
 	return true, nil
 }
+
+func (t *Token) DeleteTokensForUser(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from tokens where user_id = $1`
+	_, err := db.ExecContext(ctx, stmt, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
