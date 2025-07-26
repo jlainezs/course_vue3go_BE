@@ -20,6 +20,7 @@ type Book struct {
 	Author          Author    `json:"author"`
 	Description     string    `json:"description"`
 	Genres          []Genre   `json:"genres"`
+	GenreIDs        []int     `json:"genre_ids"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
@@ -97,6 +98,7 @@ func (b *Book) GetAll(genreIDs ...int) ([]*Book, error) {
 			return nil, err
 		}
 		book.Genres = genres
+		book.GenreIDs = []int{}
 
 		books = append(books, &book)
 	}
