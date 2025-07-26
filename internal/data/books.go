@@ -99,6 +99,9 @@ func (b *Book) GetAll(genreIDs ...int) ([]*Book, error) {
 		}
 		book.Genres = genres
 		book.GenreIDs = []int{}
+		for _, x := range genres {
+			book.GenreIDs = append(book.GenreIDs, x.ID)
+		}
 
 		books = append(books, &book)
 	}
