@@ -40,6 +40,8 @@ func (app *application) routes() http.Handler {
 		mux.Post("/users/delete", app.DeleteUser)
 		mux.Post("/log-user-out/{id}", app.LogUserOutAndSetInactive)
 		mux.Post("/books", app.AllBooks)
+
+		mux.Post("/authors/all", app.AuthorsAll)
 	})
 
 	// static files
