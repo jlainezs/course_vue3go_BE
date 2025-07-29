@@ -68,6 +68,8 @@ func Test_errorJSON(t *testing.T) {
 		t.Error(err)
 	}
 
+	testJSONPayload(t, rr)
+
 	errSlice := []string{
 		"(SQLSTATE 23505)",
 		"(SQLSTATE 22001)",
@@ -78,5 +80,18 @@ func Test_errorJSON(t *testing.T) {
 		if err != nil {
 			t.Error(customErr)
 		}
+		testJSONPayload(t, rr)
+	}
+}
+
+func testJSONPayload(t *testing.T, rr *httptest.ResponseRecorder) {
+	var requestPayload jsonResponse
+	decoder := json.NewDecoder(rr.Body)
+	err := decoder.Decode(&requestPayload)
+	if err != nil {
+		t.Error(err)
+	}
+	if !requestPayload.Error {
+		t.Error("Expected error to be true")
 	}
 }
