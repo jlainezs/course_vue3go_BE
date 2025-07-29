@@ -64,7 +64,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 }
 
 // errorJson writes an error as a Json. Check https://www.postgresql.org/docs/14/errcodes-appendix.html for db errors.
-func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) {
+func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) error {
 	statusCode := http.StatusBadRequest
 	if len(status) > 0 {
 		statusCode = status[0]
@@ -90,6 +90,8 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 	payload.Message = customErr.Error()
 
 	_ = app.writeJSON(w, statusCode, payload)
+
+	return nil
 }
 
 // EditUser handles the creation or updating of user details based on the provided request data.
