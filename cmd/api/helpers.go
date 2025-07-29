@@ -9,6 +9,8 @@ import (
 	"wwwVuewgosrc/internal/data"
 )
 
+// readJSON reads and decodes a JSON request body into the given data structure, enforcing a size limit of 1 MB.
+// Returns an error if the JSON is invalid, exceeds the size limit, or contains multiple JSON values.
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // 1 MB
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -27,6 +29,8 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 	return nil
 }
 
+// writeJSON sends a JSON response with the specified status, data, and optional custom headers.
+// Returns an error if any occurs.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	var output []byte
 	if app.environment == "development" {
@@ -88,6 +92,10 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 	_ = app.writeJSON(w, statusCode, payload)
 }
 
+// EditUser handles the creation or updating of user details based on the provided request data.
+// If a valid user ID is provided, the user is updated; otherwise, a new user is created.
+// It responds with a JSON message indicating the success or failure of the operation.
+// Note: this operation does not belongs here
 func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 	var user data.User
 	err := app.readJSON(w, r, &user)
