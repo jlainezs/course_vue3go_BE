@@ -9,6 +9,8 @@ import (
 	"wwwVuewgosrc/internal/data"
 )
 
+// readJSON reads and decodes a JSON request body into the given data structure, enforcing a size limit of 1 MB.
+// Returns an error if the JSON is invalid, exceeds the size limit, or contains multiple JSON values.
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // 1 MB
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -27,6 +29,8 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 	return nil
 }
 
+// writeJSON sends a JSON response with the specified status, data, and optional custom headers.
+// Returns an error if any occurs.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	var output []byte
 	if app.environment == "development" {
@@ -60,7 +64,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 }
 
 // errorJson writes an error as a Json. Check https://www.postgresql.org/docs/14/errcodes-appendix.html for db errors.
-func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) {
+func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) error {
 	statusCode := http.StatusBadRequest
 	if len(status) > 0 {
 		statusCode = status[0]
@@ -86,8 +90,14 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 	payload.Message = customErr.Error()
 
 	_ = app.writeJSON(w, statusCode, payload)
+
+	return nil
 }
 
+// EditUser handles the creation or updating of user details based on the provided request data.
+// If a valid user ID is provided, the user is updated; otherwise, a new user is created.
+// It responds with a JSON message indicating the success or failure of the operation.
+// Note: this operation does not belongs here
 func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 	var user data.User
 	err := app.readJSON(w, r, &user)

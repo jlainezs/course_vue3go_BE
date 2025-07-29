@@ -8,7 +8,7 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			payload := jsonResponse{
 				Error:   true,
-				Message: "invalid authentication credentials",
+				Message: "invalid authentication credentials. Inner: " + err.Error(),
 			}
 
 			_ = app.writeJSON(w, http.StatusUnauthorized, payload)

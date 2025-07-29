@@ -26,6 +26,10 @@ func (app *application) routes() http.Handler {
 	mux.Post("/users/login", app.Login)
 	mux.Post("/users/logout", app.Logout)
 
+	mux.Post("/books", app.AllBooks)
+	mux.Get("/books", app.AllBooks)
+	mux.Get("/books/{slug}", app.OneBook)
+
 	mux.Post("/validate-token", app.ValidateToken)
 
 	mux.Route("/admin", func(mux chi.Router) {
@@ -35,7 +39,18 @@ func (app *application) routes() http.Handler {
 		mux.Post("/users/get/{id}", app.GetUser)
 		mux.Post("/users/delete", app.DeleteUser)
 		mux.Post("/log-user-out/{id}", app.LogUserOutAndSetInactive)
+		mux.Post("/books", app.AllBooks)
+
+		// admin book routes
+		mux.Post("/authors/all", app.AuthorsAll)
+		mux.Post("/books/save", app.EditBook)
+		mux.Post("/books/delete", app.DeleteBook)
+		mux.Post("/books/{id}", app.BookById)
 	})
+
+	// static files
+	fileServer := http.FileServer(http.Dir("./static/"))
+	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
 	return mux
 }

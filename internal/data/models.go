@@ -21,14 +21,18 @@ func New(dbPool *sql.DB) Models {
 	db = dbPool
 
 	return Models{
-		User:  User{},
-		Token: Token{},
+		User:   User{},
+		Token:  Token{},
+		Book:   Book{},
+		Author: Author{},
 	}
 }
 
 type Models struct {
-	User  User
-	Token Token
+	User   User
+	Token  Token
+	Book   Book
+	Author Author
 }
 
 type User struct {
@@ -153,7 +157,7 @@ func (u *User) Update() error {
 	return nil
 }
 
-// Delete removes the user from the databsae
+// Delete removes the user from the database
 func (u *User) Delete() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -246,7 +250,7 @@ func (u *User) PasswordMatches(plainText string) (bool, error) {
 }
 
 // Token is the data structure for any token in the database. Note that
-// we do no send the TokenHash (a slice of bytes) in any exported JSON.
+// we do not send the TokenHash (a slice of bytes) in any exported JSON.
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -359,7 +363,7 @@ func (t *Token) Insert(token Token, u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	// delete any exsting tokens
+	// delete any existing tokens
 	stmt := `delete from tokens where user_id = $1`
 	_, err := db.ExecContext(ctx, stmt, token.UserID)
 	if err != nil {
@@ -433,4 +437,35 @@ func (t *Token) DeleteTokensForUser(id int) error {
 	}
 
 	return nil
+}
+
+func (a *Author) All() ([]*Author, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, author_name, created_at, updated_at
+       from authors order by author_name`
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	var authors []*Author
+	for rows.Next() {
+		var author Author
+		err := rows.Scan(
+			&author.ID,
+			&author.AuthorName,
+			&author.CreatedAt,
+			&author.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		authors = append(authors, &author)
+	}
+
+	return authors, nil
 }
