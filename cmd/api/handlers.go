@@ -354,3 +354,24 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
 }
+
+func (app *application) BookById(w http.ResponseWriter, r *http.Request) {
+	bookID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	book, err := app.models.Book.GetOneById(bookID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error: false,
+		Data:  book,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
