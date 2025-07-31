@@ -61,7 +61,7 @@ func dbParams() dbConnectionParameters {
 // main is the main entry point for our application
 func main() {
 	var cfg config
-	cfg.port = 8081
+	cfg.port = 8082
 	cfg.db = dbParams()
 	environment := os.Getenv("ENV")
 
